@@ -1,0 +1,601 @@
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>17 Rod Digital Abacus Tool - Online Soroban Calculator</title>
+  <style>
+  
+    * { box-sizing: border-box; }
+    body {
+      background: inherit;
+      margin: 20px;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 90vh;
+    }
+    .readout {
+      display: flex;
+      justify-content: space-evenly;
+      width: 610px;
+      max-width: 100%;
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      margin-left: 5px;
+      margin-right: 5px;
+    }
+    .frame {
+      position: relative;
+      display: block;
+      width: 620px;
+      max-width: 100%;
+      height: 180px;
+      border: 10px solid #333;
+      border-radius: 5px;
+      padding: 0 5px;
+      background: white;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.3), 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .crossbar {
+      position: absolute;
+      top: 41px;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(to bottom, #444, #222);
+      z-index: 1;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    }
+    .rods {
+      display: flex;
+      justify-content: space-evenly;
+      align-items: stretch;
+      height: 100%;
+    }
+    .rod {
+      position: relative;
+      width: 30px;
+      height: 100%;
+    }
+    .rod-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 4px;
+      background: black;
+      z-index: 0;
+      border-radius: 2px;
+      box-shadow: 0 0 2px rgba(0,0,0,0.5);
+    }
+    .bead {
+      position: absolute;
+      width: 34px;
+      height: 20px;
+      clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.5), inset 0 -1px 1px rgba(0,0,0,0.2);
+      z-index: 2;
+      border: 1px solid rgba(0,0,0,0.2);
+      background-image: linear-gradient(
+        135deg,
+        rgba(255,255,255,0.4) 10%,
+        transparent 50%
+      );
+    }
+    .upper {
+      background: radial-gradient(circle at 20% 20%, #66CCFF 20%, #0055AA 80%);
+    }
+    .lower1 {
+      background: radial-gradient(circle at 20% 20%, #99FF66 20%, #006600 80%);
+    }
+    .lower2 {
+      background: radial-gradient(circle at 20% 20%, #FFFF66 20%, #CC9900 80%);
+    }
+    .lower3 {
+      background: radial-gradient(circle at 20% 20%, #FFAA55 20%, #E64C00 80%);
+    }
+    .lower4 {
+      background: radial-gradient(circle at 20% 20%, #FF6666 20%, #A30000 80%);
+    }
+    .pointer {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: radial-gradient(circle at 30% 30%, #FFF, #CCC);
+      border-radius: 50%;
+      top: 38px;
+      z-index: 3;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.4), inset 0 -1px 1px rgba(0,0,0,0.2);
+    }
+    .title {
+      text-align: center;
+      font-size: 30px;
+      font-weight: bold;
+      margin-top: 10px;
+      width: 620px;
+      max-width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .button-container {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    #orientationPrompt {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      font-size: 20px;
+      text-align: center;
+      padding-top: 50%;
+      z-index: 1000;
+    }
+    /* Tablet styles (768px–1023px) */
+    @media screen and (min-width: 768px) and (max-width: 1023px) {
+      .frame {
+        width: 775px;
+        height: 225px;
+        border: 12.5px solid #333;
+        padding: 0 6.25px;
+      }
+      .readout {
+        width: 762.5px;
+        font-size: 30px;
+        margin-bottom: 12.5px;
+        margin-left: 6.25px;
+        margin-right: 6.25px;
+      }
+      .rod {
+        width: 37.5px;
+      }
+      .rod-line {
+        width: 5px;
+      }
+      .bead {
+        width: 42.5px;
+        height: 25px;
+      }
+      .crossbar {
+        top: 51.25px;
+        height: 7.5px;
+      }
+      .pointer {
+        width: 10px;
+        height: 10px;
+        top: 47.5px;
+      }
+      .title {
+        font-size: 37.5px;
+        width: 775px;
+      }
+      .developer-section {
+        width: 775px;
+      }
+      .developer-section h2 {
+        font-size: 30px;
+      }
+      .developer-button {
+        padding: 10px 20px;
+        font-size: 20px;
+        border: 2.5px solid #22c55e;
+      }
+      .refresh-logo {
+        width: 125px;
+        margin-bottom: 12.5px;
+      }
+    }
+    /* Desktop/Laptop styles (≥ 1024px) */
+    @media screen and (min-width: 1024px) {
+      .frame {
+        width: 930px;
+        height: 270px;
+        border: 15px solid #333;
+        padding: 0 7.5px;
+      }
+      .readout {
+        width: 915px;
+        font-size: 36px;
+        margin-bottom: 15px;
+        margin-left: 7.5px;
+        margin-right: 7.5px;
+      }
+      .rod {
+        width: 45px;
+      }
+      .rod-line {
+        width: 6px;
+      }
+      .bead {
+        width: 51px;
+        height: 30px;
+      }
+      .crossbar {
+        top: 61.5px;
+        height: 9px;
+      }
+      .pointer {
+        width: 12px;
+        height: 12px;
+        top: 57px;
+      }
+      .title {
+        font-size: 45px;
+        width: 930px;
+      }
+      .refresh-logo {
+        width: 150px;
+        margin-bottom: 15px;
+      }
+    }
+    /* Ensure readability on very small screens */
+    @media screen and (max-width: 767px) {
+      .readout { font-size: 20px; }
+      .title { font-size: 24px; }
+    }
+    
+  </style>
+</head>
+<body>
+  <audio id="beadClickSound" src="click.mp3"></audio>
+  <div id="orientationPrompt">Please rotate your device to landscape mode or tap here to try full-screen.</div>
+  
+  <main style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+    <div class="readout" aria-label="Abacus Value Display">
+      <span class="digit">0</span><span class="digit">0</span><span class="digit">0</span>
+      <span class="digit">0</span><span class="digit">0</span><span class="digit">0</span>
+      <span class="digit">0</span><span class="digit">0</span><span class="digit">0</span>
+      <span class="digit">0</span><span class="digit">0</span><span class="digit">0</span>
+      <span class="digit">0</span><span class="digit">0</span><span class="digit">0</span>
+      <span class="digit">0</span><span class="digit">0</span>
+    </div>
+    <div class="frame" aria-label="17 Rod Abacus Frame. Use click or tap to move beads.">
+      <div class="crossbar"></div>
+      <div class="pointer" style="left: 92.14px;"></div>
+      <div class="pointer" style="left: 195.15px;"></div>
+      <div class="pointer" style="left: 297.16px;"></div>
+      <div class="pointer" style="left: 402.17px;"></div>
+      <div class="pointer" style="left: 505.18px;"></div>
+      <div class="rods">
+        <div class="rod" data-index="0">
+          <div class="rod-line"></div>
+          <div class="bead upper" data-rod="0" data-type="upper" style="top: 21px;"></div>
+          <div class="bead lower lower1" data-rod="0" data-index="1" style="top: 45px;"></div>
+          <div class="bead lower lower2" data-rod="0" data-index="2" style="top: 67px;"></div>
+          <div class="bead lower lower3" data-rod="0" data-index="3" style="top: 89px;"></div>
+          <div class="bead lower lower4" data-rod="0" data-index="4" style="top: 111px;"></div>
+        </div>
+        <div class="rod" data-index="1">
+          <div class="rod-line"></div>
+          <div class="bead upper" data-rod="1" data-type="upper" style="top: 21px;"></div>
+          <div class="bead lower lower1" data-rod="1" data-index="1" style="top: 45px;"></div>
+          <div class="bead lower lower2" data-rod="1" data-index="2" style="top: 67px;"></div>
+          <div class="bead lower lower3" data-rod="1" data-index="3" style="top: 89px;"></div>
+          <div class="bead lower lower4" data-rod="1" data-index="4" style="top: 111px;"></div>
+        </div>
+        <div class="rod" data-index="2">
+          <div class="rod-line"></div>
+          <div class="bead upper" data-rod="2" data-type="upper" style="top: 21px;"></div>
+          <div class="bead lower lower1" data-rod="2" data-index="1" style="top: 45px;"></div>
+          <div class="bead lower lower2" data-rod="2" data-index="2" style="top: 67px;"></div>
+          <div class="bead lower lower3" data-rod="2" data-index="3" style="top: 89px;"></div>
+          <div class="bead lower lower4" data-rod="2" data-index="4" style="top: 111px;"></div>
+        </div>
+        <div class="rod" data-index="3">
+          <div class="rod-line"></div>
+          <div class="bead upper" data-rod="3" data-type="upper" style="top: 21px;"></div>
+          <div class="bead lower lower1" data-rod="3" data-index="1" style="top: 45px;"></div>
+          <div class="bead lower lower2" data-rod="3" data-index="2" style="top: 67px;"></div>
+          <div class="bead lower lower3" data-rod="3" data-index="3" style="top: 89px;"></div>
+          <div class="bead lower lower4" data-rod="3" data-index="4" style="top: 111px;"></div>
+        </div>
+        <div class="rod" data-index="4">
+          <div class="rod-line"></div>
+          <div class="bead upper" data-rod="4" data-type="upper" style="top: 21px;"></div>
+          <div class="bead lower lower1" data-rod="4" data-index="1" style="top: 45px;"></div>
+          <div class="bead lower lower2" data-rod="4" data-index="2" style="top: 67px;"></div>
+          <div class="bead lower lower3" data-rod="4" data-index="3" style="top: 89px;"></div>
+          <div class="bead lower lower4" data-rod="4" data-index="4" style="top: 111px;"></div>
+        </div>
+        <div class="rod" data-index="5">
+          <div class="rod-line"></div>
+          <div class="bead upper" data-rod="5" data-type="upper" style="top: 21px;"></div>
+          <div class="bead lower lower1" data-rod="5" data-index="1" style="top: 45px;"></div>
+          <div class="bead lower lower2" data-rod="5" data-index="2" style="top: 67px;"></div>
+          <div class="bead lower lower3" data-rod="5" data-index="3" style="top: 89px;"></div>
+          <div class="bead lower lower4" data-rod="5" data-index="4" style="top: 111px;"></div>
+        </div>
+        <div class="rod" data-index="6">
+          <div class="rod-line"></div>
+          <div class="bead upper" data-rod="6" data-type="upper" style="top: 21px;"></div>
+          <div class="bead lower lower1" data-rod="6" data-index="1" style="top: 45px;"></div>
+          <div class="bead lower lower2" data-rod="6" data-index="2" style="top: 67px;"></div>
+          <div class="bead lower lower3" data-rod="6" data-index="3" style="top: 89px;"></div>
+          <div class="bead lower lower4" data-rod="6" data-index="4" style="top: 111px;"></div>
+        </div>
+        <div class="rod" data-index="7">
+          <div class="rod-line"></div>
+          <div class="bead upper" data-rod="7" data-type="upper" style="top: 21px;"></div>
+          <div class="bead lower lower1" data-rod="7" data-index="1" style="top: 45px;"></div>
+          <div class="bead lower lower2" data-rod="7" data-index="2" style="top: 67px;"></div>
+          <div class="bead lower lower3" data-rod="7" data-index="3" style="top: 89px;"></div>
+          <div class="bead lower lower4" data-rod="7" data-index="4" style="top: 111px;"></div>
+        </div>
+        <div class="rod" data-index="8">
+          <div class="rod-line"></div>
+          <div class="bead upper" data-rod="8" data-type="upper" style="top: 21px;"></div>
+          <div class="bead lower lower1" data-rod="8" data-index="1" style="top: 45px;"></div>
+          <div class="bead lower lower2" data-rod="8" data-index="2" style="top: 67px;"></div>
+          <div class="bead lower lower3" data-rod="8" data-index="3" style="top: 89px;"></div>
+          <div class="bead lower lower4" data-rod="8" data-index="4" style="top: 111px;"></div>
+        </div>
+        <div class="rod" data-index="9">
+          <div class="rod-line"></div>
+          <div class="bead upper" data-rod="9" data-type="upper" style="top: 21px;"></div>
+          <div class="bead lower lower1" data-rod="9" data-index="1" style="top: 45px;"></div>
+          <div class="bead lower lower2" data-rod="9" data-index="2" style="top: 67px;"></div>
+          <div class="bead lower lower3" data-rod="9" data-index="3" style="top: 89px;"></div>
+          <div class="bead lower lower4" data-rod="9" data-index="4" style="top: 111px;"></div>
+        </div>
+        <div class="rod" data-index="10">
+          <div class="rod-line"></div>
+          <div class="bead upper" data-rod="10" data-type="upper" style="top: 21px;"></div>
+          <div class="bead lower lower1" data-rod="10" data-index="1" style="top: 45px;"></div>
+          <div class="bead lower lower2" data-rod="10" data-index="2" style="top: 67px;"></div>
+          <div class="bead lower lower3" data-rod="10" data-index="3" style="top: 89px;"></div>
+          <div class="bead lower lower4" data-rod="10" data-index="4" style="top: 111px;"></div>
+        </div>
+        <div class="rod" data-index="11">
+          <div class="rod-line"></div>
+          <div class="bead upper" data-rod="11" data-type="upper" style="top: 21px;"></div>
+          <div class="bead lower lower1" data-rod="11" data-index="1" style="top: 45px;"></div>
+          <div class="bead lower lower2" data-rod="11" data-index="2" style="top: 67px;"></div>
+          <div class="bead lower lower3" data-rod="11" data-index="3" style="top: 89px;"></div>
+          <div class="bead lower lower4" data-rod="11" data-index="4" style="top: 111px;"></div>
+        </div>
+        <div class="rod" data-index="12">
+          <div class="rod-line"></div>
+          <div class="bead upper" data-rod="12" data-type="upper" style="top: 21px;"></div>
+          <div class="bead lower lower1" data-rod="12" data-index="1" style="top: 45px;"></div>
+          <div class="bead lower lower2" data-rod="12" data-index="2" style="top: 67px;"></div>
+          <div class="bead lower lower3" data-rod="12" data-index="3" style="top: 89px;"></div>
+          <div class="bead lower lower4" data-rod="12" data-index="4" style="top: 111px;"></div>
+        </div>
+        <div class="rod" data-index="13">
+          <div class="rod-line"></div>
+          <div class="bead upper" data-rod="13" data-type="upper" style="top: 21px;"></div>
+          <div class="bead lower lower1" data-rod="13" data-index="1" style="top: 45px;"></div>
+          <div class="bead lower lower2" data-rod="13" data-index="2" style="top: 67px;"></div>
+          <div class="bead lower lower3" data-rod="13" data-index="3" style="top: 89px;"></div>
+          <div class="bead lower lower4" data-rod="13" data-index="4" style="top: 111px;"></div>
+        </div>
+        <div class="rod" data-index="14">
+          <div class="rod-line"></div>
+          <div class="bead upper" data-rod="14" data-type="upper" style="top: 21px;"></div>
+          <div class="bead lower lower1" data-rod="14" data-index="1" style="top: 45px;"></div>
+          <div class="bead lower lower2" data-rod="14" data-index="2" style="top: 67px;"></div>
+          <div class="bead lower lower3" data-rod="14" data-index="3" style="top: 89px;"></div>
+          <div class="bead lower lower4" data-rod="14" data-index="4" style="top: 111px;"></div>
+        </div>
+        <div class="rod" data-index="15">
+          <div class="rod-line"></div>
+          <div class="bead upper" data-rod="15" data-type="upper" style="top: 21px;"></div>
+          <div class="bead lower lower1" data-rod="15" data-index="1" style="top: 45px;"></div>
+          <div class="bead lower lower2" data-rod="15" data-index="2" style="top: 67px;"></div>
+          <div class="bead lower lower3" data-rod="15" data-index="3" style="top: 89px;"></div>
+          <div class="bead lower lower4" data-rod="15" data-index="4" style="top: 111px;"></div>
+        </div>
+        <div class="rod" data-index="16">
+          <div class="rod-line"></div>
+          <div class="bead upper" data-rod="16" data-type="upper" style="top: 21px;"></div>
+          <div class="bead lower lower1" data-rod="16" data-index="1" style="top: 45px;"></div>
+          <div class="bead lower lower2" data-rod="16" data-index="2" style="top: 67px;"></div>
+          <div class="bead lower lower3" data-rod="16" data-index="3" style="top: 89px;"></div>
+          <div class="bead lower lower4" data-rod="16" data-index="4" style="top: 111px;"></div>
+        </div>
+      </div>
+    </div>
+    <h1 class="title">17 Rod Digital Multicolor Abacus Tool</h1>
+  </main>
+
+  
+  <script>
+    // Function to detect if the device is mobile or tablet
+    function isMobileOrTablet() {
+      const userAgent = navigator.userAgent.toLowerCase();
+      return /mobile|tablet|ipad|iphone|android|webos|blackberry|iemobile|opera mini/i.test(userAgent);
+    }
+
+    // Function to request full-screen mode
+    function requestFullScreen() {
+      const element = document.documentElement;
+      if (element.requestFullscreen) {
+        element.requestFullscreen();
+      } else if (element.mozRequestFullScreen) {
+        element.mozRequestFullScreen();
+      } else if (element.webkitRequestFullscreen) {
+        element.webkitRequestFullscreen();
+      } else if (element.msRequestFullscreen) {
+        element.msRequestFullscreen();
+      }
+    }
+
+    // Function to lock orientation to landscape
+    function lockOrientation() {
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').then(() => {
+          document.getElementById('orientationPrompt').style.display = 'none';
+        }).catch(err => {
+          console.log('Orientation lock failed:', err);
+          document.getElementById('orientationPrompt').style.display = 'block';
+        });
+      } else {
+        document.getElementById('orientationPrompt').style.display = 'block';
+      }
+    }
+
+    // Handle click on orientation prompt to try full-screen
+    document.getElementById('orientationPrompt').addEventListener('click', () => {
+      requestFullScreen();
+      lockOrientation();
+    });
+
+    // Check if device is mobile or tablet and attempt to lock orientation
+    if (isMobileOrTablet()) {
+      window.addEventListener('load', () => {
+        requestFullScreen();
+        lockOrientation();
+      });
+    }
+
+    // Abacus script
+    (function() {
+      const rodsState = Array.from({length: 17}, () => ({ upper: false, lowerCount: 0 }));
+      const readoutDigits = document.querySelectorAll('.digit');
+      const clickSound = document.getElementById('beadClickSound');
+      clickSound.volume = 1.0;
+
+      // Function to get current dimensions based on frame width
+      function getDimensions() {
+        const frame = document.querySelector('.frame');
+        const frameWidth = frame.offsetWidth;
+        const baseWidth = 620; // Mobile base width
+        const scale = frameWidth / baseWidth;
+
+        return {
+          frameWidth: frameWidth,
+          frameHeight: 180 * scale,
+          borderWidth: 10 * scale,
+          padding: 5 * scale,
+          beadHeight: 20 * scale,
+          gap: 2 * scale,
+          crossY: 41 * scale,
+          crossbarHeight: 6 * scale,
+          pointerSize: 8 * scale,
+          pointerTop: 38 * scale,
+          rodWidth: 30 * scale,
+          rodLineWidth: 4 * scale,
+          beadWidth: 34 * scale
+        };
+      }
+
+      // Function to update pointer positions
+      function updatePointerPositions() {
+        const { frameWidth, pointerSize, pointerTop } = getDimensions();
+        const pointers = document.querySelectorAll('.pointer');
+        const basePositions = [92.14, 195.15, 297.16, 402.17, 505.18]; // Mobile positions
+        const scale = frameWidth / 620;
+        const scaledPositions = basePositions.map(pos => pos * scale);
+        pointers.forEach((pointer, index) => {
+          pointer.style.left = scaledPositions[index] + 'px';
+          pointer.style.width = pointerSize + 'px';
+          pointer.style.height = pointerSize + 'px';
+          pointer.style.top = pointerTop + 'px';
+        });
+      }
+
+      // Function to update rod positions
+      function updateRodPositions(rodIndex) {
+        const { beadHeight, gap, crossY, crossbarHeight } = getDimensions();
+        const crossbarBottom = crossY + crossbarHeight;
+        const spacing = beadHeight + gap;
+        const state = rodsState[rodIndex];
+        const rodElem = document.querySelector('.rod[data-index="' + rodIndex + '"]');
+        const upperBead = rodElem.querySelector('.bead.upper');
+        const lowerBeads = rodElem.querySelectorAll('.bead.lower');
+
+        if (state.upper) {
+          upperBead.style.top = (crossY - beadHeight) + 'px';
+        } else {
+          upperBead.style.top = '0px';
+        }
+
+        lowerBeads.forEach(lb => {
+          const idx = parseInt(lb.getAttribute('data-index'));
+          if (idx <= state.lowerCount) {
+            lb.style.top = (crossbarBottom + (idx - 1) * spacing) + 'px';
+          } else {
+            const m = 4 - state.lowerCount;
+            const clusterPos = (4 - idx) + 1;
+            lb.style.top = (rodElem.clientHeight - beadHeight - (clusterPos - 1) * spacing) + 'px';
+          }
+        });
+
+        const rodValue = (state.upper ? 5 : 0) + state.lowerCount;
+        readoutDigits[rodIndex].textContent = rodValue;
+      }
+
+      // Function to update layout on resize
+      function updateLayout() {
+        const { frameHeight, borderWidth, padding, rodWidth, rodLineWidth, beadWidth, beadHeight, crossY, crossbarHeight } = getDimensions();
+        const frame = document.querySelector('.frame');
+        const crossbar = document.querySelector('.crossbar');
+
+        frame.style.height = frameHeight + 'px';
+        frame.style.borderWidth = borderWidth + 'px';
+        frame.style.padding = `0 ${padding}px`;
+        crossbar.style.top = crossY + 'px';
+        crossbar.style.height = crossbarHeight + 'px';
+
+        document.querySelectorAll('.rod').forEach(rod => {
+          rod.style.width = rodWidth + 'px';
+        });
+        document.querySelectorAll('.rod-line').forEach(line => {
+          line.style.width = rodLineWidth + 'px';
+        });
+        document.querySelectorAll('.bead').forEach(bead => {
+          bead.style.width = beadWidth + 'px';
+          bead.style.height = beadHeight + 'px';
+        });
+
+        updatePointerPositions();
+        for (let i = 0; i < rodsState.length; i++) {
+          updateRodPositions(i);
+        }
+      }
+
+      // Initial setup
+      updateLayout();
+
+      // Update on resize or orientation change
+      window.addEventListener('resize', updateLayout);
+      if (screen.orientation) {
+        screen.orientation.addEventListener('change', updateLayout);
+      }
+
+      // Bead click handlers
+      document.querySelectorAll('.bead').forEach(bead => {
+        bead.addEventListener('click', () => {
+          clickSound.currentTime = 0;
+          clickSound.play().catch(error => {
+            console.log('Audio playback failed. Ensure click.mp3 is in the same directory or replace with a valid audio file URL:', error);
+          });
+
+          const rodIndex = parseInt(bead.getAttribute('data-rod'));
+          if (bead.classList.contains('upper')) {
+            rodsState[rodIndex].upper = !rodsState[rodIndex].upper;
+          } else {
+            const idx = parseInt(bead.getAttribute('data-index'));
+            const currentUpCount = rodsState[rodIndex].lowerCount;
+            if (idx > currentUpCount) {
+              rodsState[rodIndex].lowerCount = idx;
+            } else {
+              rodsState[rodIndex].lowerCount = idx - 1;
+            }
+          }
+          updateRodPositions(rodIndex);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
