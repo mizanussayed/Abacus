@@ -26,63 +26,70 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-      # - name: Install MAUI Workload
-      #   run: dotnet workload install maui
+      - name: Install MAUI Workload
+        run: dotnet workload install maui
 
-      # - name: Restore Dependencies
-      #   run: dotnet restore ./Abacus
+      - name: Restore Dependencies
+        run: dotnet restore ./Abacus
 
-      # Generate a new keystore in CI
-      - name: Generate Keystore
-        run: |
-          keytool -genkey -v \
-            -keystore ./Abacus/abacus.keystore \
-            -alias abacus-key \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -storepass ${{ secrets.SIGNING_KEY_PASSWORD }} \
-            -keypass ${{ secrets.SIGNING_KEY_PASSWORD }} \
-            -dname "CN=Abacus, OU=DevOps, O=MyCompany, L=Dhaka, S=Dhaka, C=BD"
+      # Generate once keystore in CI
+      # - name: Generate Keystore
+      #   run: |
+      #     keytool -genkey -v \
+      #       -keystore ./Abacus/abacus.keystore \
+      #       -alias abacus-key \
+      #       -keyalg RSA \
+      #       -keysize 2048 \
+      #       -validity 10000 \
+      #       -storepass ${{ secrets.SIGNING_KEY_PASSWORD }} \
+      #       -keypass ${{ secrets.SIGNING_KEY_PASSWORD }} \
+      #       -dname "CN=Abacus, OU=DevOps, O=MyCompany, L=Dhaka, S=Dhaka, C=BD"
+      #   shell: bash
+
+      # - name: get keystore code
+      #   run: cat ./Abacus/abacus.keystore
+
+
+      - name: decode keystore to base64 from secrets
         shell: bash
+        run: |
+          keystoreBase64="${{ secrets.SIGNING_KEYSTORE_BASE64 }}"
+          echo "$keystoreBase64" | base64 -d > ./Abacus/abacus.keystore
 
-      - name: get keystore code
-        run: cat ./Abacus/abacus.keystore
+      - name: Extract Version
+        id: extractVersion
+        shell: pwsh
+        run: |
+          $xml = [Xml] (Get-Content ./Abacus/Abacus.csproj)
+          [string] $version = [Version] $xml.Project.PropertyGroup.ApplicationDisplayVersion
+          echo "version=$($version)" >> $env:GITHUB_OUTPUT
 
-      # - name: Extract Version
-      #   id: extractVersion
-      #   shell: pwsh
-      #   run: |
-      #     $xml = [Xml] (Get-Content ./Abacus/Abacus.csproj)
-      #     [string] $version = [Version] $xml.Project.PropertyGroup.ApplicationDisplayVersion
-      #     echo "version=$($version)" >> $env:GITHUB_OUTPUT
-
-      # - name: Build Signed APK
-      #   run: dotnet publish ./Abacus/Abacus.csproj -c Release -f net10.0-android -p:AndroidPackageFormat=apk -p:AndroidSigningKeyStore=./Abacus/abacus.keystore -p:AndroidSigningKeyAlias=${{ secrets.SIGNING_KEY_ALIAS }} -p:AndroidSigningKeyPass=${{ secrets.SIGNING_KEY_PASSWORD }} -p:AndroidSigningStorePass=${{ secrets.SIGNING_KEY_PASSWORD }}
+      - name: Build Signed APK
+        run: dotnet publish ./Abacus/Abacus.csproj -c Release -f net10.0-android -p:AndroidPackageFormat=apk -p:AndroidSigningKeyStore=./Abacus/abacus.keystore -p:AndroidSigningKeyAlias=${{ secrets.SIGNING_KEY_ALIAS }} -p:AndroidSigningKeyPass=${{ secrets.SIGNING_KEY_PASSWORD }} -p:AndroidSigningStorePass=${{ secrets.SIGNING_KEY_PASSWORD }}
 
 
-      # - name: Rename APK
-      #   shell: pwsh
-      #   run: |
-      #     $version = "${{ steps.extractVersion.outputs.version }}"
-      #     Rename-Item ./Abacus/bin/Release/net10.0-android/*.apk "Abacus_v$version.apk"
+      - name: Rename APK
+        shell: pwsh
+        run: |
+          $version = "${{ steps.extractVersion.outputs.version }}"
+          Rename-Item ./Abacus/bin/Release/net10.0-android/*.apk "Abacus_v$version.apk"
 
-      # - name: Upload APK Artifact
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: android-apk
-      #     path: ./Abacus/bin/Release/net10.0-android/Abacus_v*.apk
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: ./Abacus/bin/Release/net10.0-android/Abacus_v*.apk
 
-      # - name: Create GitHub Release
-      #   uses: softprops/action-gh-release@v2
-      #   with:
-      #     tag_name: v${{ steps.extractVersion.outputs.version }}
-      #     name: Release v${{ steps.extractVersion.outputs.version }}
-      #     body: |
-      #       Signed Android APK for version ${{ steps.extractVersion.outputs.version }}.
-      #     files: ./Abacus/bin/Release/net10.0-android/Abacus_v*.apk
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.extractVersion.outputs.version }}
+          name: Release v${{ steps.extractVersion.outputs.version }}
+          body: |
+            Signed Android APK for version ${{ steps.extractVersion.outputs.version }}.
+          files: ./Abacus/bin/Release/net10.0-android/Abacus_v*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
 
