@@ -27,15 +27,22 @@ jobs:
         run: dotnet restore
         working-directory: ./Abacus
 
-      - name: Build Android APK
-        run: dotnet build ./Abacus/Abacus.csproj -c Release -f net10.0-android
+      - name: Decode Keystore
+        shell: bash
+        run: |
+          echo "${{ secrets.SIGNING_KEYSTORE_BASE64 }}" | base64 -d > abacus.keystore
 
-      - name: Publish APK
-        run: dotnet publish ./Abacus/Abacus.csproj -c Release -f net10.0-android -o ./Abacus/bin/Release/net10.0-android/AppPackages
+      - name: Build Signed APK
+        run: dotnet publish ./Abacus/Abacus.csproj -c Release -f net10.0-android \
+          -p:AndroidPackageFormat=apk \
+          -p:AndroidSigningKeyStore=abacus.keystore \
+          -p:AndroidSigningKeyAlias=${{ secrets.SIGNING_KEY_ALIAS }} \
+          -p:AndroidSigningKeyPass=${{ secrets.SIGNING_KEY_PASSWORD }} \
+          -p:AndroidSigningStorePass=${{ secrets.SIGNING_KEY_PASSWORD }}
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: ./Abacus/bin/Release/net10.0-android/AppPackages/*.apk
+          path: ./Abacus/bin/Release/net10.0-android/*.apk
 
