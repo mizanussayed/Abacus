@@ -34,7 +34,6 @@ jobs:
           echo "${{ secrets.SIGNING_KEYSTORE_BASE64 }}" | base64 -d > ./Abacus/abacus.keystore
           
       - name: List Files for Debugging
-        run: dir ./Abacus
         run: cat ./Abacus/abacus.keystore
 
       # - name: Build Signed APK
