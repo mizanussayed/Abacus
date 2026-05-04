@@ -33,27 +33,22 @@ jobs:
         run: dotnet restore ./Abacus
 
       # Generate once keystore in CI
-      # - name: Generate Keystore
-      #   run: |
-      #     keytool -genkey -v \
-      #       -keystore ./Abacus/abacus.keystore \
-      #       -alias abacus-key \
-      #       -keyalg RSA \
-      #       -keysize 2048 \
-      #       -validity 10000 \
-      #       -storepass ${{ secrets.SIGNING_KEY_PASSWORD }} \
-      #       -keypass ${{ secrets.SIGNING_KEY_PASSWORD }} \
-      #       -dname "CN=Abacus, OU=DevOps, O=MyCompany, L=Dhaka, S=Dhaka, C=BD"
-      #   shell: bash
+      - name: Generate Keystore
+        run: |
+           keytool -genkey -v \
+             -keystore ./Abacus/abacus.keystore \
+             -alias abacus-key \
+             -keyalg RSA \
+             -keysize 2048 \
+             -validity 10000 \
+             -storepass ${{ secrets.SIGNING_KEY_PASSWORD }} \
+             -keypass ${{ secrets.SIGNING_KEY_PASSWORD }} \
+             -dname "CN=Abacus, OU=DevOps, O=MyCompany, L=Dhaka, S=Dhaka, C=BD"
+        shell: bash
 
       # - name: get keystore code
       #   run: cat ./Abacus/abacus.keystore
 
-
-      - name: decode keystore to base64 from secrets
-        shell: bash
-        run: |
-          echo "${{ secrets.SIGNING_KEYSTORE_BASE64 }}" > ./Abacus/abacus.keystore
 
       - name: Extract Version
         id: extractVersion
