@@ -34,7 +34,8 @@ jobs:
         run: dotnet publish ./Abacus/Abacus.csproj -c Release -f net10.0-android -o ./Abacus/bin/Release/net10.0-android/AppPackages
 
       - name: Upload APK Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: android-apk
           path: ./Abacus/bin/Release/net10.0-android/AppPackages/*.apk
+
