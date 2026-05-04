@@ -1,0 +1,227 @@
+﻿@page "/"
+
+<audio id="beadClickSound" src="click.mp3"></audio>
+<div id="orientationPrompt">Please rotate your device to landscape mode or tap here to try full-screen.</div>
+  
+<main style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+    <div class="readout" aria-label="Abacus Value Display">
+        @for (int i = 0; i < 17; i++)
+        {
+            <span class="digit">0</span>
+        }
+    </div>
+    <div class="frame" aria-label="17 Rod Abacus Frame. Use click or tap to move beads.">
+        <div class="crossbar"></div>
+        <div class="pointer" style="left: 92.14px;"></div>
+        <div class="pointer" style="left: 195.15px;"></div>
+        <div class="pointer" style="left: 297.16px;"></div>
+        <div class="pointer" style="left: 402.17px;"></div>
+        <div class="pointer" style="left: 505.18px;"></div>
+        <div class="rods">
+
+        @for (int i = 0; i < 17; i++)
+        {
+            <div class="rod" data-index="@i">
+                <div class="rod-line"></div>
+                <div class="bead upper" data-rod="@i" data-type="upper" style="top: 21px;"></div>
+                <div class="bead lower lower1" data-rod="@i" data-index="1" style="top: 45px;"></div>
+                <div class="bead lower lower2" data-rod="@i" data-index="2" style="top: 67px;"></div>
+                <div class="bead lower lower3" data-rod="@i" data-index="3" style="top: 89px;"></div>
+                <div class="bead lower lower4" data-rod="@i" data-index="4" style="top: 111px;"></div>
+            </div>
+        }
+        </div>
+    </div>
+    <h1 class="title">17 Rod Digital Multicolor Abacus Tool</h1>
+</main>
+
+  
+<script>
+    // Function to detect if the device is mobile or tablet
+    function isMobileOrTablet() {
+      const userAgent = navigator.userAgent.toLowerCase();
+      return /mobile|tablet|ipad|iphone|android|webos|blackberry|iemobile|opera mini/i.test(userAgent);
+    }
+
+    // Function to request full-screen mode
+    function requestFullScreen() {
+      const element = document.documentElement;
+      if (element.requestFullscreen) {
+        element.requestFullscreen();
+      } else if (element.mozRequestFullScreen) {
+        element.mozRequestFullScreen();
+      } else if (element.webkitRequestFullscreen) {
+        element.webkitRequestFullscreen();
+      } else if (element.msRequestFullscreen) {
+        element.msRequestFullscreen();
+      }
+    }
+
+    // Function to lock orientation to landscape
+    function lockOrientation() {
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').then(() => {
+          document.getElementById('orientationPrompt').style.display = 'none';
+        }).catch(err => {
+          console.log('Orientation lock failed:', err);
+          document.getElementById('orientationPrompt').style.display = 'block';
+        });
+      } else {
+        document.getElementById('orientationPrompt').style.display = 'block';
+      }
+    }
+
+    // Handle click on orientation prompt to try full-screen
+    document.getElementById('orientationPrompt').addEventListener('click', () => {
+      requestFullScreen();
+      lockOrientation();
+    });
+
+    // Check if device is mobile or tablet and attempt to lock orientation
+    if (isMobileOrTablet()) {
+      window.addEventListener('load', () => {
+        requestFullScreen();
+        lockOrientation();
+      });
+    }
+
+    // Abacus script
+    (function() {
+      const rodsState = Array.from({length: 17}, () => ({ upper: false, lowerCount: 0 }));
+      const readoutDigits = document.querySelectorAll('.digit');
+      const clickSound = document.getElementById('beadClickSound');
+      clickSound.volume = 1.0;
+
+      // Function to get current dimensions based on frame width
+      function getDimensions() {
+        const frame = document.querySelector('.frame');
+        const frameWidth = frame.offsetWidth;
+        const baseWidth = 620; // Mobile base width
+        const scale = frameWidth / baseWidth;
+
+        return {
+          frameWidth: frameWidth,
+          frameHeight: 180 * scale,
+          borderWidth: 10 * scale,
+          padding: 5 * scale,
+          beadHeight: 20 * scale,
+          gap: 2 * scale,
+          crossY: 41 * scale,
+          crossbarHeight: 6 * scale,
+          pointerSize: 8 * scale,
+          pointerTop: 38 * scale,
+          rodWidth: 30 * scale,
+          rodLineWidth: 4 * scale,
+          beadWidth: 34 * scale
+        };
+      }
+
+      // Function to update pointer positions
+      function updatePointerPositions() {
+        const { frameWidth, pointerSize, pointerTop } = getDimensions();
+        const pointers = document.querySelectorAll('.pointer');
+        const basePositions = [92.14, 195.15, 297.16, 402.17, 505.18]; // Mobile positions
+        const scale = frameWidth / 620;
+        const scaledPositions = basePositions.map(pos => pos * scale);
+        pointers.forEach((pointer, index) => {
+          pointer.style.left = scaledPositions[index] + 'px';
+          pointer.style.width = pointerSize + 'px';
+          pointer.style.height = pointerSize + 'px';
+          pointer.style.top = pointerTop + 'px';
+        });
+      }
+
+      // Function to update rod positions
+      function updateRodPositions(rodIndex) {
+        const { beadHeight, gap, crossY, crossbarHeight } = getDimensions();
+        const crossbarBottom = crossY + crossbarHeight;
+        const spacing = beadHeight + gap;
+        const state = rodsState[rodIndex];
+        const rodElem = document.querySelector('.rod[data-index="' + rodIndex + '"]');
+        const upperBead = rodElem.querySelector('.bead.upper');
+        const lowerBeads = rodElem.querySelectorAll('.bead.lower');
+
+        if (state.upper) {
+          upperBead.style.top = (crossY - beadHeight) + 'px';
+        } else {
+          upperBead.style.top = '0px';
+        }
+
+        lowerBeads.forEach(lb => {
+          const idx = parseInt(lb.getAttribute('data-index'));
+          if (idx <= state.lowerCount) {
+            lb.style.top = (crossbarBottom + (idx - 1) * spacing) + 'px';
+          } else {
+            const m = 4 - state.lowerCount;
+            const clusterPos = (4 - idx) + 1;
+            lb.style.top = (rodElem.clientHeight - beadHeight - (clusterPos - 1) * spacing) + 'px';
+          }
+        });
+
+        const rodValue = (state.upper ? 5 : 0) + state.lowerCount;
+        readoutDigits[rodIndex].textContent = rodValue;
+      }
+
+      // Function to update layout on resize
+      function updateLayout() {
+        const { frameHeight, borderWidth, padding, rodWidth, rodLineWidth, beadWidth, beadHeight, crossY, crossbarHeight } = getDimensions();
+        const frame = document.querySelector('.frame');
+        const crossbar = document.querySelector('.crossbar');
+
+        frame.style.height = frameHeight + 'px';
+        frame.style.borderWidth = borderWidth + 'px';
+        frame.style.padding = `0 ${padding}px`;
+        crossbar.style.top = crossY + 'px';
+        crossbar.style.height = crossbarHeight + 'px';
+
+        document.querySelectorAll('.rod').forEach(rod => {
+          rod.style.width = rodWidth + 'px';
+        });
+        document.querySelectorAll('.rod-line').forEach(line => {
+          line.style.width = rodLineWidth + 'px';
+        });
+        document.querySelectorAll('.bead').forEach(bead => {
+          bead.style.width = beadWidth + 'px';
+          bead.style.height = beadHeight + 'px';
+        });
+
+        updatePointerPositions();
+        for (let i = 0; i < rodsState.length; i++) {
+          updateRodPositions(i);
+        }
+      }
+
+      // Initial setup
+      updateLayout();
+
+      // Update on resize or orientation change
+      window.addEventListener('resize', updateLayout);
+      if (screen.orientation) {
+        screen.orientation.addEventListener('change', updateLayout);
+      }
+
+      // Bead click handlers
+      document.querySelectorAll('.bead').forEach(bead => {
+        bead.addEventListener('click', () => {
+          clickSound.currentTime = 0;
+          clickSound.play().catch(error => {
+            console.log('Audio playback failed. Ensure click.mp3 is in the same directory or replace with a valid audio file URL:', error);
+          });
+
+          const rodIndex = parseInt(bead.getAttribute('data-rod'));
+          if (bead.classList.contains('upper')) {
+            rodsState[rodIndex].upper = !rodsState[rodIndex].upper;
+          } else {
+            const idx = parseInt(bead.getAttribute('data-index'));
+            const currentUpCount = rodsState[rodIndex].lowerCount;
+            if (idx > currentUpCount) {
+              rodsState[rodIndex].lowerCount = idx;
+            } else {
+              rodsState[rodIndex].lowerCount = idx - 1;
+            }
+          }
+          updateRodPositions(rodIndex);
+        });
+      });
+    })();
+</script>
