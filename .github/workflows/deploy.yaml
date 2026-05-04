@@ -53,8 +53,7 @@ jobs:
       - name: decode keystore to base64 from secrets
         shell: bash
         run: |
-          keystoreBase64="${{ secrets.SIGNING_KEYSTORE_BASE64 }}"
-          echo "$keystoreBase64" | base64 -d > ./Abacus/abacus.keystore
+          echo "${{ secrets.SIGNING_KEYSTORE_BASE64 }}" > ./Abacus/abacus.keystore
 
       - name: Extract Version
         id: extractVersion
