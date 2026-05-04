@@ -27,7 +27,7 @@ jobs:
         run: dotnet restore
         working-directory: ./Abacus
 
-      - name: Decode Keystore
+      - name: Decode Keystore & Save to File
         shell: bash
         run: |
           echo "${{ secrets.SIGNING_KEYSTORE_BASE64 }}" | base64 -d > abacus.keystore
