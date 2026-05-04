@@ -1,8 +1,4 @@
 <Solution>
-  <Folder Name="/.github/" />
-  <Folder Name="/.github/workflows/">
-    <File Path="deploy.yaml" />
-  </Folder>
   <Project Path="Abacus/Abacus.csproj">
     <Deploy />
   </Project>
