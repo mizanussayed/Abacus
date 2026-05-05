@@ -50,14 +50,18 @@ jobs:
           echo "version=$($version)" >> $env:GITHUB_OUTPUT
 
       - name: Build Signed APK
-        run: dotnet publish ./Abacus/Abacus.csproj `
-          -c Release `
-          -f net10.0-android `
-          -p:AndroidPackageFormat=apk `
-          -p:AndroidSigningKeyStore=./Abacus/abacus.keystore `
-          -p:AndroidSigningKeyAlias=${{ secrets.SIGNING_KEY_ALIAS }} `
-          -p:AndroidSigningKeyPass=${{ secrets.SIGNING_KEY_PASSWORD }} `
-          -p:AndroidSigningStorePass=${{ secrets.SIGNING_KEY_PASSWORD }}
+        shell: pwsh
+        run: |
+          $keystorePath = (Resolve-Path "Abacus/abacus.keystore").Path
+      
+          dotnet publish ./Abacus/Abacus.csproj `
+            -c Release `
+            -f net10.0-android `
+            -p:AndroidPackageFormat=apk `
+            -p:AndroidSigningKeyStore="$keystorePath" `
+            -p:AndroidSigningKeyAlias=${{ secrets.SIGNING_KEY_ALIAS }} `
+            -p:AndroidSigningKeyPass=${{ secrets.SIGNING_KEY_PASSWORD }} `
+            -p:AndroidSigningStorePass=${{ secrets.SIGNING_KEY_PASSWORD }}
 
       - name: Rename APK
         shell: pwsh
