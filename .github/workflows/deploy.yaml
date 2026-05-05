@@ -58,10 +58,16 @@ jobs:
             -c Release `
             -f net10.0-android `
             -p:AndroidPackageFormat=apk `
+            -p:AndroidKeyStore=true `
             -p:AndroidSigningKeyStore="$keystorePath" `
             -p:AndroidSigningKeyAlias=${{ secrets.SIGNING_KEY_ALIAS }} `
             -p:AndroidSigningKeyPass=${{ secrets.SIGNING_KEY_PASSWORD }} `
             -p:AndroidSigningStorePass=${{ secrets.SIGNING_KEY_PASSWORD }}
+
+      - name: List build output
+        shell: pwsh
+        run: |
+          Get-ChildItem -Recurse Abacus/bin/Release/net10.0-android
 
       - name: Rename APK
         shell: pwsh
