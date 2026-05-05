@@ -54,7 +54,7 @@ jobs:
           -c Release `
           -f net10.0-android `
           -p:AndroidPackageFormat=apk `
-          -p:AndroidSigningKeyStore=Abacus/abacus.keystore `
+          -p:AndroidSigningKeyStore=./Abacus/abacus.keystore `
           -p:AndroidSigningKeyAlias=${{ secrets.SIGNING_KEY_ALIAS }} `
           -p:AndroidSigningKeyPass=${{ secrets.SIGNING_KEY_PASSWORD }} `
           -p:AndroidSigningStorePass=${{ secrets.SIGNING_KEY_PASSWORD }}
