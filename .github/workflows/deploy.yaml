@@ -11,6 +11,7 @@ permissions:
 jobs:
   build-android:
     runs-on: windows-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -32,36 +33,32 @@ jobs:
       - name: Restore Dependencies
         run: dotnet restore ./Abacus
 
-      # Generate once keystore in CI
-      - name: Generate Keystore
+      - name: Restore Keystore from Secret
+        shell: pwsh
         run: |
-           keytool -genkey -v \
-             -keystore ./Abacus/abacus.keystore \
-             -alias abacus-key \
-             -keyalg RSA \
-             -keysize 2048 \
-             -validity 10000 \
-             -storepass ${{ secrets.SIGNING_KEY_PASSWORD }} \
-             -keypass ${{ secrets.SIGNING_KEY_PASSWORD }} \
-             -dname "CN=Abacus, OU=DevOps, O=MyCompany, L=Dhaka, S=Dhaka, C=BD"
-        shell: bash
+          $base64 = "${{ secrets.SIGNING_KEYSTORE_BASE64 }}"
+          $bytes = [Convert]::FromBase64String($base64)
+          [System.IO.File]::WriteAllBytes("Abacus/abacus.keystore", $bytes)
 
-      # - name: get keystore code
-      #   run: cat ./Abacus/abacus.keystore
-
+      - name: Verify Keystore Exists
+        run: dir Abacus
 
       - name: Extract Version
         id: extractVersion
         shell: pwsh
         run: |
-          $xml = [Xml] (Get-Content ./Abacus/Abacus.csproj)
-          # [string] $version = [Version] $xml.Project.PropertyGroup.ApplicationDisplayVersion
           $version = 2
           echo "version=$($version)" >> $env:GITHUB_OUTPUT
 
       - name: Build Signed APK
-        run: dotnet publish ./Abacus/Abacus.csproj -c Release -f net10.0-android -p:AndroidPackageFormat=apk -p:AndroidSigningKeyStore=./Abacus/abacus.keystore -p:AndroidSigningKeyAlias=${{ secrets.SIGNING_KEY_ALIAS }} -p:AndroidSigningKeyPass=${{ secrets.SIGNING_KEY_PASSWORD }} -p:AndroidSigningStorePass=${{ secrets.SIGNING_KEY_PASSWORD }}
-
+        run: dotnet publish ./Abacus/Abacus.csproj `
+          -c Release `
+          -f net10.0-android `
+          -p:AndroidPackageFormat=apk `
+          -p:AndroidSigningKeyStore=Abacus/abacus.keystore `
+          -p:AndroidSigningKeyAlias=${{ secrets.SIGNING_KEY_ALIAS }} `
+          -p:AndroidSigningKeyPass=${{ secrets.SIGNING_KEY_PASSWORD }} `
+          -p:AndroidSigningStorePass=${{ secrets.SIGNING_KEY_PASSWORD }}
 
       - name: Rename APK
         shell: pwsh
@@ -80,11 +77,6 @@ jobs:
         with:
           tag_name: v${{ steps.extractVersion.outputs.version }}
           name: Release v${{ steps.extractVersion.outputs.version }}
-          body: |
-            Signed Android APK for version ${{ steps.extractVersion.outputs.version }}.
           files: ./Abacus/bin/Release/net10.0-android/Abacus_v*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
-
