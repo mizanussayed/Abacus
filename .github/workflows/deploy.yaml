@@ -1,5 +1,4 @@
 name: Deploy on Android
-
 on:
   push:
     branches:
